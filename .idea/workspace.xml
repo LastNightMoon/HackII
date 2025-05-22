@@ -4,7 +4,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a1ef1f4b-e821-4e59-b94c-07c14ce7e70e" name="Changes" comment="jupeter" />
+    <list default="true" id="a1ef1f4b-e821-4e59-b94c-07c14ce7e70e" name="Changes" comment="jupeter">
+      <change afterPath="$PROJECT_DIR$/improvement/audio_pipeline.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/improvement/listener.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/recognition/recognition_pipeline.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/audio_processing_notebook.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/audio_processing_notebook.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/final_audio_pipeline.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/final_audio_pipeline.ipynb" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -66,7 +73,7 @@
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;project.propVCSSupport.DirectoryMappings&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.intellij.jupyter.py.connections.configurable.JupyterServersConfigurable&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
@@ -79,7 +86,7 @@
       <recent name="D:\MyPrograms\python\HackII" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.yy">
+  <component name="RunManager" selected="Python.rabbit">
     <configuration name="consumer" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="HackII" />
       <option name="ENV_FILES" value="$PROJECT_DIR$/.env" />
@@ -216,11 +223,11 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="Python.yy" />
-      <item itemvalue="Python.recognition_model" />
-      <item itemvalue="Python.imp_m2" />
       <item itemvalue="Python.consumer" />
+      <item itemvalue="Python.imp_m2" />
       <item itemvalue="Python.rabbit" />
+      <item itemvalue="Python.recognition_model" />
+      <item itemvalue="Python.yy" />
     </list>
     <recent_temporary>
       <list>
@@ -257,7 +264,12 @@
       <workItem from="1747378978116" duration="8246000" />
       <workItem from="1747394760780" duration="4209000" />
       <workItem from="1747465764918" duration="7112000" />
-      <workItem from="1747595478259" duration="23128000" />
+      <workItem from="1747595478259" duration="29113000" />
+      <workItem from="1747724253669" duration="1143000" />
+      <workItem from="1747729905113" duration="28000" />
+      <workItem from="1747730569543" duration="1276000" />
+      <workItem from="1747739253721" duration="3605000" />
+      <workItem from="1747893977370" duration="1770000" />
     </task>
     <task id="LOCAL-00001" summary="init all system">
       <option name="closed" value="true" />
@@ -275,7 +287,15 @@
       <option name="project" value="LOCAL" />
       <updated>1747469831341</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="jupeter">
+      <option name="closed" value="true" />
+      <created>1747664956527</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1747664956527</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
