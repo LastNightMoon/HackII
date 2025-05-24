@@ -1,8 +1,8 @@
-from sqlalchemy import create_engine, Column, Integer, String, Boolean, ForeignKey
-from sqlalchemy.orm import sessionmaker, declarative_base, relationship
-from api.utils.variable_environment import VarEnv
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from utils.variable_environment import VarEnv
 from DataBaseManager.models import Category, MusicMeta, Base
-from typing import List, Type, TypeVar, Optional
+from typing import List, Type, Optional
 
 
 class DataBaseManager:
