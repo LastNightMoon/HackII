@@ -13,4 +13,5 @@ python-dotenv
 boto3
 pydantic~=2.11.5
 SQLAlchemy~=2.0.41
-fastapi~=0.115.12
+fastapi~=0.115.1
+sqlalchemy

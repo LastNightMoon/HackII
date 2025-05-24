@@ -1,13 +1,13 @@
 from sqlalchemy import create_engine, Column, Integer, String, Boolean, ForeignKey
 from sqlalchemy.orm import sessionmaker, declarative_base, relationship
-from pydantic import BaseModel
 from api.utils.variable_environment import VarEnv
-from api.DataBaseManager.models import Category, MusicMeta
+from DataBaseManager.models import Category, MusicMeta
 from typing import List, Type, TypeVar, Optional
 
 
 class DataBaseManager:
-    def __init__(self, db_url=f'postgresql+psycopg2://{VarEnv.DBUSER}:{VarEnv.DBPASSWORD}@{VarEnv.DBHOST}/{VarEnv.DBNAME}'):
+    def __init__(self,
+                 db_url=f'postgresql+psycopg2://{VarEnv.DBUSER}:{VarEnv.DBPASSWORD}@{VarEnv.DBHOST}/{VarEnv.DBNAME}'):
         self.engine = create_engine(db_url, echo=True)
 
     def execute_commit(self, command):
@@ -34,12 +34,14 @@ class DataBaseManager:
                 query = query.offset(offset)
 
             return query.all()
+        except Exception as e:
+            print(e)
         finally:
             session.close()
             raise Exception("DatabaseSelectError")
 
-
     def get_session(self):
         return self.engine.connect()
+
 
 db = DataBaseManager()
