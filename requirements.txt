@@ -1,4 +1,4 @@
-numpy
+numpy~=2.2.6
 torch
 librosa
 pydub
@@ -8,6 +8,9 @@ vosk
 faster-whisper
 noisereduce
 mir_eval
-kombu
+kombu~=5.5.3
 python-dotenv
 boto3
+pydantic~=2.11.5
+SQLAlchemy~=2.0.41
+fastapi~=0.115.12
