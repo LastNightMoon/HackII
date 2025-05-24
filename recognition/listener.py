@@ -3,7 +3,7 @@ import logging
 import json
 
 from kombu import Connection, Queue, Producer
-from audio_pipeline import AudioTranscriber  # Импортируем твой класс
+from recognition_pipeline import AudioTranscriber  # Импортируем твой класс
 
 # Конфигурация
 RABBIT_URL = os.environ.get("RABBITMQ_URL", "amqp://guest:guest@localhost//")
@@ -14,6 +14,7 @@ WORK_DIR = 'temp_output_r'
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
 
 def process_message(audio_path):
     pipeline = AudioTranscriber(work_dir=WORK_DIR)
@@ -31,6 +32,7 @@ def process_message(audio_path):
             "error": str(e),
             "path": audio_path
         }
+
 
 def main():
     input_queue = Queue(INPUT_QUEUE, durable=True)
@@ -63,6 +65,7 @@ def main():
                     continue
                 except Exception as e:
                     logger.exception(f"Ошибка обработки сообщения: {e}")
+
 
 if __name__ == "__main__":
     try:

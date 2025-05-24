@@ -1,0 +1,9 @@
+services:
+
+  transcriber:
+    build: .
+    env_file:
+      - .env
+    command:
+      - "python"
+      - "improvement/listener.py"

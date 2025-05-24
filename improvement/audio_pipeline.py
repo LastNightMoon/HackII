@@ -56,7 +56,7 @@ class AudioProcessor:
         return enhanced_path
 
     def pre_emphasis_filter(self, path: str, chunk_duration: int = 10) -> str:
-        audio, _ = librosa.load(path, sr=self.sample_rate, mono=True)
+        audio, _ = librosa.load(path, sr=self.sample_rate, mono=True, res_type='resampy')
         chunk_size = chunk_duration * self.sample_rate
         processed_chunks = []
 
@@ -90,5 +90,5 @@ def process_audio(song_path: str, output_path: str = "final_output.wav") -> None
     processor.final_processing(preemphasized_path, output_path)
 
 
-if __name__ == "__main__":
-    process_audio("src/Боевая-пехотная.wav")
+# if __name__ == "__main__":
+#     process_audio("src/Боевая-пехотная.wav")

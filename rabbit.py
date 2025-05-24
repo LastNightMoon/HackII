@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 # Configuration
 rabbitmq_url = os.environ.get('RABBITMQ_URL')
-queue_name = 'hi'
+queue_name = 'audio_input'
 
 # Define a durable queue
 queue = Queue(queue_name, durable=True)

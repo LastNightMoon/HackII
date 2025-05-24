@@ -1,0 +1,13 @@
+numpy
+torch
+librosa
+pydub
+soundfile
+demucs
+vosk
+faster-whisper
+noisereduce
+mir_eval
+kombu
+python-dotenv
+boto3
