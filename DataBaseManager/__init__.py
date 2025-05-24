@@ -40,7 +40,7 @@ class DataBaseManager:
             session.close()
 
     def select_music_by_id(self, id):
-        return self.select(MusicMeta, filter_condition={"music_id": id}, limit=1)
+        return self.select(MusicMeta, filter_condition={"music_id": id}, limit=1)[0]
 
     def get_session(self):
         Session = sessionmaker(bind=self.engine)

@@ -22,7 +22,7 @@ try:
         producer = Producer(conn)
         # Publish a persistent message
         producer.publish(
-            body='Hello, RabbitMQ from kombu!',
+            body='{"id": 1}',
             routing_key=queue_name,
             exchange='',  # Default exchange
         )

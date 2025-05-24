@@ -1,3 +1,4 @@
+import io
 import os
 import shutil
 import numpy as np
@@ -9,8 +10,8 @@ from pydub.effects import normalize
 
 
 class AudioProcessor:
-    def __init__(self, input_path: str, temp_dir: str = "temp_audio", sample_rate: int = 44100):
-        self.input_path = input_path
+    def __init__(self, input_data: bytes, temp_dir: str = "temp_audio", sample_rate: int = 44100):
+        self.input_data = input_data
         self.sample_rate = sample_rate
         self.temp_dir = temp_dir
         self._prepare_temp_dir()
@@ -22,7 +23,8 @@ class AudioProcessor:
         print(f"Temporary directory '{self.temp_dir}' prepared.")
 
     def load_audio(self) -> np.ndarray:
-        audio, sr = sf.read(self.input_path)
+        bytes_io = io.BytesIO(self.input_data)
+        audio, sr = sf.read(bytes_io)
         if len(audio.shape) > 1:
             audio = np.mean(audio, axis=1)  # Convert to mono
         print(f"Loaded audio shape: {audio.shape}, Sample rate: {sr}")
@@ -71,24 +73,42 @@ class AudioProcessor:
         print("Pre-emphasis filtering complete.")
         return output_path
 
-    def final_processing(self, path: str, output_file: str) -> None:
+    def final_processing(self, path: str) -> bytes:
         audio = AudioSegment.from_file(path)
         audio = normalize(audio)
         audio = audio.high_pass_filter(100)
         audio = audio.low_pass_filter(10000)
         audio = audio + 6
         audio = audio.compress_dynamic_range(threshold=-20.0, ratio=6.0)
-        audio.export(output_file, format="wav")
-        print(f"Final audio saved to {output_file}")
+        buffer = io.BytesIO()
+        audio.export(buffer, format="wav")
+        buffer.seek(0)
+        print(f"Final audio saved")
+        return buffer.read()
 
-def process_audio(song_path: str, output_path: str = "final_output.wav") -> None:
-    processor = AudioProcessor(input_path=song_path)
+
+def process_audio(data: bytes) -> bytes:
+    print("Initializing processor...")
+    processor = AudioProcessor(input_data=data)
+
+    print("Loading audio...")
     raw_audio = processor.load_audio()
+
+    print("Reducing noise...")
     noise_reduced_path = processor.reduce_noise(raw_audio)
+
+    print("Enhancing vocals...")
     enhanced_path = processor.enhance_vocals(noise_reduced_path)
+
+    print("Applying pre-emphasis filter...")
     preemphasized_path = processor.pre_emphasis_filter(enhanced_path)
-    processor.final_processing(preemphasized_path, output_path)
+
+    print("Performing final processing...")
+    result = processor.final_processing(preemphasized_path)
+
+    print("Audio processing complete.")
+    return result
 
 
-# if __name__ == "__main__":
-#     process_audio("src/Боевая-пехотная.wav")
+if __name__ == "__main__":
+    process_audio("src/Боевая-пехотная.wav")

@@ -3,9 +3,9 @@ torch
 librosa
 pydub
 soundfile
-demucs
-vosk
-faster-whisper
+#demucs
+#vosk
+#faster-whisper
 noisereduce
 mir_eval
 kombu~=5.5.3
@@ -15,3 +15,4 @@ pydantic~=2.11.5
 SQLAlchemy~=2.0.41
 fastapi~=0.115.1
 sqlalchemy
+psycopg2-binary

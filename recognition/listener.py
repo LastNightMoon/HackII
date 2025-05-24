@@ -4,16 +4,7 @@ import json
 
 from kombu import Connection, Queue, Producer
 from recognition_pipeline import AudioTranscriber  # Импортируем твой класс
-
-# Конфигурация
-RABBIT_URL = os.environ.get("RABBITMQ_URL", "amqp://guest:guest@localhost//")
-INPUT_QUEUE = 'audio_output1'
-OUTPUT_QUEUE = 'audio_output2'
-WORK_DIR = 'temp_output_r'
-
-# Настройка логирования
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+from dotenv import load_dotenv
 
 
 def process_message(audio_path):
@@ -68,7 +59,16 @@ def main():
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger(__name__)
     try:
+        # Конфигурация
+        RABBIT_URL = os.environ.get("RABBITMQ_URL", "amqp://guest:guest@localhost//")
+        INPUT_QUEUE = 'audio_output1'
+        OUTPUT_QUEUE = 'audio_output2'
+        WORK_DIR = 'temp_output_r'
+
+        load_dotenv()
         main()
     except KeyboardInterrupt:
         logger.info("🛑 Остановлено пользователем")

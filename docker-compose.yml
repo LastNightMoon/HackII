@@ -6,4 +6,5 @@ services:
       - .env
     command:
       - "python"
-      - "improvement/listener.py"
+      - "-m"
+      - "improvement.listener"

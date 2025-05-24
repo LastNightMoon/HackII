@@ -1,22 +1,19 @@
 import os
 import shutil
 import tempfile
-import numpy as np
-import torch
-import librosa
-import soundfile as sf
-import json
-import wave
 
-from pydub import AudioSegment
-from pydub.effects import normalize
-from demucs.apply import apply_model
-from demucs.pretrained import get_model
-from demucs.audio import AudioFile
-from vosk import Model, KaldiRecognizer
+import librosa
 import noisereduce as nr
+import numpy as np
+import soundfile as sf
+import torch
+from demucs.apply import apply_model
+from demucs.audio import AudioFile
+from demucs.pretrained import get_model
 from faster_whisper import WhisperModel
 from mir_eval.separation import bss_eval_sources
+from pydub import AudioSegment
+from pydub.effects import normalize
 
 
 class AudioTranscriber:
