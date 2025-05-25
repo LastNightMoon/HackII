@@ -1,30 +1,31 @@
 from pydantic import BaseModel
 from typing import Optional, List
-from datetime import datetime
-
-class AudioUploadRequest(BaseModel):
-    author: Optional[str] = None
-    description: Optional[str] = None
 
 class AudioFilterRequest(BaseModel):
-    category: Optional[int] = None
-    author: Optional[str] = None
-    search_query: Optional[str] = None
-    limit: int = 100
-    offset: int = 0
+    music_category: List[int]
+    text: Optional[str]
+
+class CategoryFilter(BaseModel):
+    id: int
+    name: str
 
 class AudioBaseInfo(BaseModel):
     id: int
     name: str
-    author: Optional[str] = None
+    author: Optional[str]
     url: str
 
-# class AudioFullInfo(AudioBaseInfo):
-#     description: Optional[str] = None
-#     duration: Optional[float] = None
-#     file_size: Optional[int] = None
-#     created_at: datetime
-#     updated_at: datetime
+class AudioFullInfo(AudioBaseInfo):
+    id: int
+    name: str
+    author: Optional[str]
+    music_category: str
+    text: Optional[str]
+    url: str
+
+class AudioUploadRequest(BaseModel):
+    author: Optional[str]
+    description: Optional[str]
 
 class AudioUploadResponse(BaseModel):
     status: str
