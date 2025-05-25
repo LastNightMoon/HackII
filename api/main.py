@@ -1,25 +1,20 @@
 import io
-import uvicorn
-from fastapi import status
-from sqlalchemy import or_, and_
-from sqlalchemy.sql import func
-import smtplib
-from email.mime.text import MIMEText
-from fastapi import FastAPI, UploadFile, File, HTTPException, Query, Depends
-from fastapi.responses import FileResponse, JSONResponse
-from pydantic import BaseModel
-from typing import Optional, List
-import uuid
 import os
-from datetime import datetime
-from DataBaseManager import Category as DBCategory, MusicMeta as DBMusicMeta
+import uuid
+from typing import List
+
+import sqlalchemy
+import uvicorn
+from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from fastapi.responses import StreamingResponse
+from urllib.parse import quote
+
+from DataBaseManager import MusicMeta as DBMusicMeta
 from DataBaseManager import db
 from DataBaseManager.minio_manager import minio_manager
-from utils.variable_environment import VarEnv
-from fastapi.middleware.cors import CORSMiddleware
-from models import AudioBaseInfo, AudioFileResponse, AudioUploadRequest, AudioVersionComparison, AudioUploadResponse, AudioFilterRequest, AudioFullInfo
-from fastapi.responses import StreamingResponse
-
+from models import AudioBaseInfo
 
 app = FastAPI(title="Голос Победы API", description="API для работы с архивом военных песен")
 
@@ -31,12 +26,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 def get_db_session():
     session = db.get_session()
     try:
         yield session
     finally:
         session.close()
+
 
 @app.get("/get_audio_list", response_model=List[AudioBaseInfo])
 async def get_audio_list():
@@ -52,7 +49,7 @@ async def get_audio_list():
         raise HTTPException(500, str(e))
 
 
-@app.get("/get_audio_info/{file_id}", response_model=AudioFullInfo)
+@app.get("/get_audio_info/{file_id}")
 async def get_audio_info(file_id: int):
     record = db.select_music_by_id(file_id)
     if not record:
@@ -74,16 +71,16 @@ async def get_audio_file(file_id: int):
         raise HTTPException(404, "Файл не найден")
 
     try:
-        file_data = minio_manager.download_file("audio-bucket", record.url)
+        file_data = minio_manager.download_file("music", record.url)
+        if not file_data:
+            raise HTTPException(500, "Файл не найден или пустой")
         return StreamingResponse(
             io.BytesIO(file_data),
-            media_type="audio/mpeg",
-            headers={"Content-Disposition": f'attachment; filename="{record.name}"'}
+            media_type="audio/wav",
+            headers={"Content-Disposition": f'inline; filename="{record.url}"'}
         )
     except Exception as e:
         raise HTTPException(500, f"Ошибка загрузки: {str(e)}")
-
-
 @app.post("/upload_audio")
 async def upload_audio(file: UploadFile = File(...)):
     if not file.filename.endswith(('.mp3', '.wav')):
@@ -95,16 +92,13 @@ async def upload_audio(file: UploadFile = File(...)):
         file_name = f"{file_id}{file_ext}"
 
         file_content = await file.read()
-        minio_manager.upload_file("audio-bucket", file_content, file_name)
-
-        new_record = DBMusicMeta(
-            name=file.filename,
-            url=file_name,
-            text_music=""
-        )
-        db_session = db.get_session()
-        db_session.add(new_record)
-        db_session.commit()
+        minio_manager.upload_file("music", file_content, file_name)
+        with db.get_session() as session:
+            session.execute(sqlalchemy.insert(DBMusicMeta).
+                            values(name=file.filename,
+                                   url=file_name, music_category=0))
+            session.commit()
+            new_record = db.select(DBMusicMeta, {"url": file_name})[0]
 
         return JSONResponse({
             "status": "success",
@@ -114,6 +108,7 @@ async def upload_audio(file: UploadFile = File(...)):
 
     except Exception as e:
         raise HTTPException(500, f"Ошибка загрузки: {str(e)}")
+
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000)

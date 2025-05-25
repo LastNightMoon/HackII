@@ -15,4 +15,4 @@ pydantic~=2.11.5
 SQLAlchemy~=2.0.41
 fastapi~=0.115.12
 uvicorn~=0.34.2
-DataBaseManager~=1.0.0
+python-multipart

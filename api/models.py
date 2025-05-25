@@ -19,12 +19,12 @@ class AudioBaseInfo(BaseModel):
     author: Optional[str] = None
     url: str
 
-class AudioFullInfo(AudioBaseInfo):
-    description: Optional[str] = None
-    duration: Optional[float] = None
-    file_size: Optional[int] = None
-    created_at: datetime
-    updated_at: datetime
+# class AudioFullInfo(AudioBaseInfo):
+#     description: Optional[str] = None
+#     duration: Optional[float] = None
+#     file_size: Optional[int] = None
+#     created_at: datetime
+#     updated_at: datetime
 
 class AudioUploadResponse(BaseModel):
     status: str
