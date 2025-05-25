@@ -1,3 +1,4 @@
+import io
 import os
 import shutil
 import tempfile
@@ -27,9 +28,9 @@ class AudioTranscriber:
             shutil.rmtree(self.work_dir)
         os.makedirs(self.work_dir, exist_ok=True)
 
-    def channel_dubl(self, input_path):
+    def channel_dubl(self, input_data: bytes):
         output_path = os.path.join(self.work_dir, "converted.wav")
-        sound = AudioSegment.from_file(input_path).set_channels(2).set_frame_rate(44100)
+        sound = AudioSegment.from_file(io.BytesIO(input_data)).set_channels(2).set_frame_rate(44100)
         sound.export(output_path, format="wav")
         return output_path
 
@@ -86,20 +87,20 @@ class AudioTranscriber:
         sdr, sir, sar, _ = bss_eval_sources(np.expand_dims(ref, 0), np.expand_dims(pred, 0))
         print(f"SDR: {sdr[0]:.2f} dB, SIR: {sir[0]:.2f} dB, SAR: {sar[0]:.2f} dB")
 
-    def process(self, input_path) -> str:
+    def process(self, input_data) -> str:
         print("🎧 Подготовка канала...")
-        path = self.channel_dubl(input_path)
+        path = self.channel_dubl(input_data)
 
         print("🔍 Выделение вокала...")
         vocals_path = self.separate_vocals(path)
-        self.test_vocals(path, vocals_path)
+        # self.test_vocals(path, vocals_path)
 
         print("🧼 Улучшение качества...")
         enhanced_path = self.enhance_audio(vocals_path)
 
         print("🎚️ Финальная обработка...")
         final_path = self.postprocess_audio(enhanced_path)
-        self.test_vocals(vocals_path, final_path)
+        # self.test_vocals(vocals_path, final_path)
 
         print("📝 Распознавание...")
         text = self.transcribe_faster_whisper(final_path)

@@ -1,10 +1,21 @@
 services:
 
-  transcriber:
-    build: .
+  improvement:
+    build:
+      dockerfile: DockerfileIMP
     env_file:
       - .env
     command:
       - "python"
       - "-m"
       - "improvement.listener"
+
+  recognition:
+    build:
+      dockerfile: DockerfileREC
+    env_file:
+      - .env
+    command:
+      - "python"
+      - "-m"
+      - "recognition.listener"

@@ -1,27 +1,41 @@
 import os
 import logging
 import json
-
-from kombu import Connection, Queue, Producer
-from recognition_pipeline import AudioTranscriber  # Импортируем твой класс
 from dotenv import load_dotenv
+from kombu import Connection, Queue, Producer
+import sqlalchemy
+
+from DataBaseManager import db, MusicMeta
+from DataBaseManager.minio_manager import minio_manager
+from recognition.schems import Song
+from recognition.recognition_pipeline import AudioTranscriber
 
 
-def process_message(audio_path):
+def process_message(body: str) -> dict:
     pipeline = AudioTranscriber(work_dir=WORK_DIR)
+
     try:
-        text = pipeline.process(audio_path)
+        meta_data = Song.model_validate_json(body)
+
+        logger.info(f"Fetching audio metadata for ID: {meta_data.id}")
+        audio_meta = db.select_music_by_id(meta_data.id)
+
+        logger.info(f"Downloading audio from Minio: {audio_meta.url}")
+        data = minio_manager.download_file("music", audio_meta.url)
+
+        logger.info("Starting audio processing pipeline...")
+        text = pipeline.process(data)
+        db.execute_commit(
+            sqlalchemy.update(MusicMeta).where(MusicMeta.music_id == audio_meta.music_id).values(text_music=text))
         return {
             "status": "success",
             "text": text,
-            "path": audio_path
         }
     except Exception as e:
-        logger.error(f"Ошибка в обработке аудио: {e}")
+        logger.exception("Ошибка в обработке аудио:")
         return {
             "status": "error",
             "error": str(e),
-            "path": audio_path
         }
 
 
@@ -35,6 +49,9 @@ def main():
             while True:
                 try:
                     message = simple_queue.get(timeout=1)
+                    if not message:
+                        continue
+
                     audio_path = message.payload.strip()
                     logger.info(f"📩 Получено сообщение: {audio_path}")
 
@@ -47,7 +64,7 @@ def main():
                         routing_key=OUTPUT_QUEUE,
                         exchange='',
                         content_type='application/json',
-                        delivery_mode=2
+                        delivery_mode=2  # persistent
                     )
                     logger.info(f"📤 Результат отправлен в очередь {OUTPUT_QUEUE}")
                     message.ack()
@@ -55,20 +72,24 @@ def main():
                 except simple_queue.Empty:
                     continue
                 except Exception as e:
-                    logger.exception(f"Ошибка обработки сообщения: {e}")
+                    logger.exception("Ошибка обработки сообщения:")
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+    )
     logger = logging.getLogger(__name__)
+
     try:
-        # Конфигурация
+        load_dotenv()
+
         RABBIT_URL = os.environ.get("RABBITMQ_URL", "amqp://guest:guest@localhost//")
         INPUT_QUEUE = 'audio_output1'
         OUTPUT_QUEUE = 'audio_output2'
         WORK_DIR = 'temp_output_r'
 
-        load_dotenv()
         main()
     except KeyboardInterrupt:
         logger.info("🛑 Остановлено пользователем")

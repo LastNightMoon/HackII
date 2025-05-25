@@ -3,9 +3,9 @@ torch
 librosa
 pydub
 soundfile
-#demucs
-#vosk
-#faster-whisper
+demucs
+vosk
+faster-whisper
 noisereduce
 mir_eval
 kombu~=5.5.3
