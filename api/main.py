@@ -22,7 +22,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.sql import text
 from fastapi import Depends
 from typing import List
-from models import AudioFilterRequest, AudioBaseInfo
+from api.models import AudioFilterRequest, AudioBaseInfo
 from DataBaseManager import MusicMeta, db
 
 app = FastAPI(title="Голос Победы API", description="API для работы с архивом военных песен")
@@ -240,7 +240,7 @@ async def get_queue_audio_file(queue_id: int, session: Session = Depends(db.get_
         raise HTTPException(404, "Файл не найден")
 
     try:
-        file_data = minio_manager.download_file("audio-bucket", record.url)
+        file_data = minio_manager.download_file("music", record.url)
         return StreamingResponse(
             io.BytesIO(file_data),
             media_type="audio/mpeg",
@@ -256,7 +256,7 @@ async def reject_audio(queue_id: int, session: Session = Depends(db.get_session)
         raise HTTPException(404, "Файл не найден")
 
     try:
-        minio_manager.delete_file("audio-bucket", record.url)
+        minio_manager.delete_file("music", record.url)
     except Exception as e:
         raise HTTPException(500, f"Ошибка удаления из MinIO: {str(e)}")
 
