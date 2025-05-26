@@ -9,6 +9,7 @@ services:
       - "python"
       - "-m"
       - "improvement.listener"
+    restart: always
 
   recognition:
     build:
@@ -19,3 +20,20 @@ services:
       - "python"
       - "-m"
       - "recognition.listener"
+    restart: always
+
+  restapi:
+    build:
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    command:
+      - "python"
+      - "-m"
+      - "api.main"
+    ports:
+      - "8000:8000"
+    restart: always
+
+networks:
+  default:

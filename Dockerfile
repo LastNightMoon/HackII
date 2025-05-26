@@ -9,14 +9,14 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 # Копирование зависимостей и установка
-COPY requirements.txt .
+COPY requirements_api.txt .
 
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements_api.txt
 #RUN
 # Копирование исходников
 COPY . .
 
 
 LABEL authors="LapTop_Bogdan"
-
-#CMD ["python", "-m",  "recognition.listener"]
+EXPOSE 8000
+#CMD ["python", "-m",  "improvement.listener"]

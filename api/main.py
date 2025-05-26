@@ -14,8 +14,8 @@ from urllib.parse import quote
 from DataBaseManager import MusicMeta, Category, MusicQueue
 from DataBaseManager import db
 from DataBaseManager.minio_manager import minio_manager
-from api.models import CategoryFilter
-from models import AudioBaseInfo, AudioFullInfo, AudioFilterRequest
+from api.models import CategoryFilter, AudioBaseInfo, AudioFullInfo, AudioFilterRequest, AudioFilterRequest, AudioBaseInfo
+
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -23,6 +23,7 @@ from sqlalchemy.sql import text
 from fastapi import Depends
 from typing import List
 from models import AudioFilterRequest, AudioBaseInfo
+from DataBaseManager import MusicMeta, db
 
 app = FastAPI(title="Голос Победы API", description="API для работы с архивом военных песен")
 
@@ -267,4 +268,4 @@ async def reject_audio(queue_id: int, session: Session = Depends(db.get_session)
 
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8000)
