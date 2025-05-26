@@ -1,14 +1,18 @@
 import os
 import logging
 import json
+
+import requests
 from dotenv import load_dotenv
 from kombu import Connection, Queue, Producer
 import sqlalchemy
 
-from DataBaseManager import db, MusicMeta
+from DataBaseManager import MusicMeta
 from DataBaseManager.minio_manager import minio_manager
+from DataBaseManager.schems import SQLBase
 from recognition.schems import Song
 from recognition.recognition_pipeline import AudioTranscriber
+from utils.generate_sql_stmz import get_text_sql, pipeline_sql
 
 
 def process_message(body: str) -> dict:
@@ -18,7 +22,7 @@ def process_message(body: str) -> dict:
         meta_data = Song.model_validate_json(body)
 
         logger.info(f"Fetching audio metadata for ID: {meta_data.id}")
-        audio_meta = db.select_music_by_id(meta_data.id)
+        audio_meta = select_music_by_id(meta_data.id)
         if not audio_meta:
             logger.info(f'No audio found for ID: {meta_data.id}')
             raise Exception(f'No audio found for ID: {meta_data.id}')
@@ -27,8 +31,9 @@ def process_message(body: str) -> dict:
 
         logger.info("Starting audio processing pipeline...")
         text = pipeline.process(data)
-        db.execute_commit(
-            sqlalchemy.update(MusicMeta).where(MusicMeta.music_id == audio_meta.music_id).values(text_music=text))
+        query = sqlalchemy.update(MusicMeta).where(MusicMeta.music_id == audio_meta.music_id).values(text_music=text)
+        pipeline_sql(query, MusicMeta)
+
         return {
             "status": "success",
             "id": meta_data.id,

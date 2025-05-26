@@ -35,3 +35,8 @@ class MusicQueue(Base):
     id: int = Column(Integer, primary_key=True, autoincrement=True)
     url: str = Column(String)
 
+model_map = {
+    "MusicMeta": MusicMeta,
+    "MusicQueue": MusicQueue,
+    "Category": Category,
+}

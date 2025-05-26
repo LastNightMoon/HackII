@@ -18,6 +18,8 @@ services:
     restart: always
 
   restapi:
+    depends_on:
+      - dbapi
     build:
       dockerfile: Dockerfile
     env_file:
@@ -25,4 +27,14 @@ services:
     command: ["python", "-m", "api.main"]
     ports:
       - "8000:8000"
+    restart: always
+
+  dbapi:
+    build:
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    command: [ "python", "-m", "DataBaseManager.interface" ]
+    ports:
+      - "6543:6543"
     restart: always

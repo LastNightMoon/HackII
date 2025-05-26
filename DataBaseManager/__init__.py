@@ -1,5 +1,7 @@
+import sqlalchemy.exc
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+
 from utils.variable_environment import VarEnv
 from DataBaseManager.models import Category, MusicMeta, MusicQueue, Base
 from typing import List, Type, Optional
@@ -12,9 +14,12 @@ class DataBaseManager:
 
     def execute_commit(self, command):
         with self.engine.connect() as session:
-            session.execute(command)
-            session.commit()
-            session.close()
+            try:
+                result = session.execute(command)
+                session.commit()
+                return result.all()
+            except sqlalchemy.exc.ResourceClosedError:
+                return "OK"
 
     def select(self, model: Type[Base],
                filter_condition: Optional[dict] = None,
@@ -38,12 +43,6 @@ class DataBaseManager:
             print(e)
         finally:
             session.close()
-
-    def select_music_by_id(self, id):
-        res = self.select(MusicMeta, filter_condition={"music_id": id}, limit=1)
-        if len(res) == 0:
-            return None
-        return res[0]
 
     def get_session(self):
         Session = sessionmaker(bind=self.engine)

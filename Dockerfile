@@ -19,4 +19,6 @@ COPY . .
 
 LABEL authors="LapTop_Bogdan"
 EXPOSE 8000
+EXPOSE 6543
+
 #CMD ["python", "-m",  "improvement.listener"]
