@@ -39,7 +39,7 @@ class AudioTranscriber:
         model = get_model(name="htdemucs").to(self.device)
         with tempfile.TemporaryDirectory() as tmpdir:
             wav = AudioFile(input_path).read(streams=0, samplerate=44100)
-            sources = apply_model(model, wav[None], device=self.device, split=True, progress=False)
+            sources = apply_model(model, wav[None], device=self.device, split=True, progress=True)
             vocals = sources[0][3]  # vocals
             sf.write(output_path, vocals.T, 44100)
         return output_path

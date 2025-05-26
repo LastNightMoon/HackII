@@ -108,7 +108,7 @@ async def filter_music_list(filter: AudioFilterRequest, session: Session = Depen
     if filter.text:
         ts_query = text("""
             SELECT * FROM music_meta
-            WHERE {category_filter} search_vector @@ websearch_to_tsquery('russian', :q)
+            WHERE {category_filter} search_vector @@ plainto_tsquery('russian', :q)
         """.format(
             category_filter="music_category = ANY(:categories) AND " if filter.music_category else ""
         ))
