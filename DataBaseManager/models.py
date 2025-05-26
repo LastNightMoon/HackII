@@ -15,15 +15,14 @@ class Base(DeclarativeBase):
 
 class Category(Base):
     __tablename__ = 'category'
-    category_id: int = Column(Integer, primary_key=True)
+    category_id: int = Column(Integer, primary_key=True, autoincrement=True)
     label: str = Column(String)
-
     owner_music_meta = relationship("MusicMeta", back_populates="owner_category")
 
 
 class MusicMeta(Base):
     __tablename__ = 'music_meta'
-    music_id: int = Column(Integer, primary_key=True)
+    music_id: int = Column(Integer, primary_key=True, autoincrement=True)
     name: str = Column(String)
     music_category: int = Column(Integer, ForeignKey('category.category_id'))
     text_music: str = Column(String)

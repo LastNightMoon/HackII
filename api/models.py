@@ -1,33 +1,44 @@
-from pydantic import BaseModel, EmailStr, Field
-from datetime import date
-from typing import Optional
+from pydantic import BaseModel
+from typing import Optional, List
 
-class AudioRecord(BaseModel):
+class AudioFilterRequest(BaseModel):
+    music_category: List[int]
+    text: Optional[str]
+
+class CategoryFilter(BaseModel):
     id: int
     name: str
-    author: Optional[str] = None
-    description: Optional[str] = None
-    file_name: str
-    original_file_name: str
-    category: Optional[int] = None
-    text: Optional[str] = None
-    restored: bool = False
-    restoration_date: Optional[date] = None
 
-
-class AudioRecordShort(BaseModel):
+class AudioBaseInfo(BaseModel):
     id: int
     name: str
-    file_name: str
-    category: Optional[int] = None
+    author: Optional[str]
+    url: str
 
+class AudioFullInfo(AudioBaseInfo):
+    id: int
+    name: str
+    author: Optional[str]
+    music_category: str
+    text: Optional[str]
+    url: str
 
-class UploadResponse(BaseModel):
+class AudioUploadRequest(BaseModel):
+    author: Optional[str]
+    description: Optional[str]
+
+class AudioUploadResponse(BaseModel):
     status: str
-    archive_url: str
-    record_id: int
+    file_id: int
+    url: str
+    message: Optional[str] = None
 
+class AudioFileResponse(BaseModel):
+    content: bytes
+    content_type: str
+    file_name: str
 
-class CategoryResponse(BaseModel):
-    id: int
-    label: str
+class AudioVersionComparison(BaseModel):
+    original_version: AudioBaseInfo
+    restored_version: AudioBaseInfo
+    differences: List[str]

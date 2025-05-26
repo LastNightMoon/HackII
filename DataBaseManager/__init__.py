@@ -53,3 +53,4 @@ class DataBaseManager:
 db = DataBaseManager()
 if __name__ == "__main__":
     print(db.select_music_by_id(0))
+    print(db.select(Category))
