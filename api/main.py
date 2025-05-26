@@ -14,15 +14,14 @@ from urllib.parse import quote
 from DataBaseManager import MusicMeta, Category
 from DataBaseManager import db
 from DataBaseManager.minio_manager import minio_manager
-from api.models import CategoryFilter
-from models import AudioBaseInfo, AudioFullInfo, AudioFilterRequest
+from api.models import CategoryFilter, AudioBaseInfo, AudioFullInfo, AudioFilterRequest, AudioFilterRequest, AudioBaseInfo
+
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import text
 from fastapi import Depends
 from typing import List
-from models import AudioFilterRequest, AudioBaseInfo
 from DataBaseManager import MusicMeta, db
 
 app = FastAPI(title="Голос Победы API", description="API для работы с архивом военных песен")
@@ -176,4 +175,4 @@ async def upload_audio(file: UploadFile = File(...)):
 
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8000)
