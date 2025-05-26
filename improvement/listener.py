@@ -16,7 +16,9 @@ def audio_download(body: dict):
 
     logger.info(f"Fetching audio metadata for ID: {meta_data.id}")
     audio_meta = db.select_music_by_id(meta_data.id)
-
+    if not audio_meta:
+        logger.info(f'No audio found for ID: {meta_data.id}')
+        return
     logger.info(f"Downloading audio from Minio: {audio_meta.url}")
     data = minio_manager.download_file("music", audio_meta.url)
 

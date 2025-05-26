@@ -19,7 +19,9 @@ def process_message(body: str) -> dict:
 
         logger.info(f"Fetching audio metadata for ID: {meta_data.id}")
         audio_meta = db.select_music_by_id(meta_data.id)
-
+        if not audio_meta:
+            logger.info(f'No audio found for ID: {meta_data.id}')
+            raise Exception(f'No audio found for ID: {meta_data.id}')
         logger.info(f"Downloading audio from Minio: {audio_meta.url}")
         data = minio_manager.download_file("music", audio_meta.url)
 
@@ -29,8 +31,10 @@ def process_message(body: str) -> dict:
             sqlalchemy.update(MusicMeta).where(MusicMeta.music_id == audio_meta.music_id).values(text_music=text))
         return {
             "status": "success",
+            "id": meta_data.id,
             "text": text,
         }
+
     except Exception as e:
         logger.exception("Ошибка в обработке аудио:")
         return {

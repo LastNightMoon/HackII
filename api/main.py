@@ -243,6 +243,11 @@ async def get_queue_audio_file(queue_id: int, session: Session = Depends(db.get_
         raise HTTPException(404, "Файл не найден")
 
     try:
+        with db.get_session() as session:
+            session.execute(sqlalchemy.insert(MusicMeta).
+                            values(name=record.url,
+                                   url=record.url, music_category=0))
+            session.commit()
         file_data = minio_manager.download_file("music", record.url)
         return StreamingResponse(
             io.BytesIO(file_data),
