@@ -17,7 +17,6 @@ class Category(Base):
     __tablename__ = 'category'
     category_id: int = Column(Integer, primary_key=True, autoincrement=True)
     label: str = Column(String)
-
     owner_music_meta = relationship("MusicMeta", back_populates="owner_category")
 
 
