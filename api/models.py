@@ -23,22 +23,4 @@ class AudioFullInfo(AudioBaseInfo):
     text: Optional[str]
     url: str
 
-class AudioUploadRequest(BaseModel):
-    author: Optional[str]
-    description: Optional[str]
 
-class AudioUploadResponse(BaseModel):
-    status: str
-    file_id: int
-    url: str
-    message: Optional[str] = None
-
-class AudioFileResponse(BaseModel):
-    content: bytes
-    content_type: str
-    file_name: str
-
-class AudioVersionComparison(BaseModel):
-    original_version: AudioBaseInfo
-    restored_version: AudioBaseInfo
-    differences: List[str]

@@ -17,8 +17,13 @@ class ManagerMinio:
         obj = self.client.get_object(Bucket=bucket, Key=path_to)
         return obj["Body"].read()
 
+    def delete_file(self, bucket: str, path: str):
+        self.client.delete_object(Bucket=bucket, Key=path)
 
 minio_manager = ManagerMinio()
+
+if __name__ == "__main__":
+    minio_manager.delete_file("music", "impБаксанская.wav")
 
 # @staticmethod
 # def upload_image(image, name):

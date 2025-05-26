@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from utils.variable_environment import VarEnv
-from DataBaseManager.models import Category, MusicMeta, Base
+from DataBaseManager.models import Category, MusicMeta, MusicQueue, Base
 from typing import List, Type, Optional
 
 

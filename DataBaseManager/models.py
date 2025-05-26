@@ -30,3 +30,9 @@ class MusicMeta(Base):
     search_vector = Column(TSVECTOR)
 
     owner_category = relationship("Category", back_populates="owner_music_meta")
+
+class MusicQueue(Base):
+    __tablename__ = 'music_queue'
+    id: int = Column(Integer, primary_key=True, autoincrement=True)
+    url: str = Column(String)
+

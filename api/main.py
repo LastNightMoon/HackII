@@ -11,7 +11,7 @@ from fastapi.responses import JSONResponse
 from fastapi.responses import StreamingResponse
 from urllib.parse import quote
 
-from DataBaseManager import MusicMeta, Category
+from DataBaseManager import MusicMeta, Category, MusicQueue
 from DataBaseManager import db
 from DataBaseManager.minio_manager import minio_manager
 from api.models import CategoryFilter
@@ -23,7 +23,6 @@ from sqlalchemy.sql import text
 from fastapi import Depends
 from typing import List
 from models import AudioFilterRequest, AudioBaseInfo
-from DataBaseManager import MusicMeta, db
 
 app = FastAPI(title="Голос Победы API", description="API для работы с архивом военных песен")
 
@@ -92,7 +91,7 @@ async def filter_music_list(filter: AudioFilterRequest, session: Session = Depen
                     url=f"/get_audio_file/{r.music_id}"
                 ) for r in results
             ]
-    print('yahoo'*80)
+
     if filter.text and hasattr(MusicMeta, "author"):
         query = select(MusicMeta).where(*filters, MusicMeta.author.ilike(f"%{filter.text}%"))
         results = session.execute(query).scalars().all()
@@ -105,7 +104,7 @@ async def filter_music_list(filter: AudioFilterRequest, session: Session = Depen
                     url=f"/get_audio_file/{r.music_id}"
                 ) for r in results
             ]
-    print('yahoo'*80)
+
     if filter.text:
         ts_query = text("""
             SELECT * FROM music_meta
@@ -146,6 +145,34 @@ async def get_audio_file(file_id: int):
     except Exception as e:
         raise HTTPException(500, f"Ошибка загрузки: {str(e)}")
 
+# @app.post("/upload_audio")
+# async def upload_audio(file: UploadFile = File(...)):
+#     if not file.filename.endswith(('.mp3', '.wav')):
+#         raise HTTPException(400, "Только MP3/WAV файлы")
+#
+#     try:
+#         file_id = str(uuid.uuid4())
+#         file_ext = os.path.splitext(file.filename)[1]
+#         file_name = f"{file_id}{file_ext}"
+#
+#         file_content = await file.read()
+#         minio_manager.upload_file("music", file_content, file_name)
+#         with db.get_session() as session:
+#             session.execute(sqlalchemy.insert(MusicMeta).
+#                             values(name=file.filename,
+#                                    url=file_name, music_category=0))
+#             session.commit()
+#             new_record = db.select(MusicMeta, {"url": file_name})[0]
+#
+#         return JSONResponse({
+#             "status": "success",
+#             "file_id": new_record.music_id,
+#             "url": f"/get_audio_file/{new_record.music_id}"
+#         }, status_code=201)
+#
+#     except Exception as e:
+#         raise HTTPException(500, f"Ошибка загрузки: {str(e)}")
+
 @app.post("/upload_audio")
 async def upload_audio(file: UploadFile = File(...)):
     if not file.filename.endswith(('.mp3', '.wav')):
@@ -159,20 +186,84 @@ async def upload_audio(file: UploadFile = File(...)):
         file_content = await file.read()
         minio_manager.upload_file("music", file_content, file_name)
         with db.get_session() as session:
-            session.execute(sqlalchemy.insert(MusicMeta).
-                            values(name=file.filename,
-                                   url=file_name, music_category=0))
+            session.execute(sqlalchemy.insert(MusicQueue).
+                            values(url=file_name))
             session.commit()
-            new_record = db.select(MusicMeta, {"url": file_name})[0]
+            new_record = db.select(MusicQueue, {"url": file_name})[0]
 
         return JSONResponse({
             "status": "success",
-            "file_id": new_record.music_id,
-            "url": f"/get_audio_file/{new_record.music_id}"
+            "file_id": new_record.id,
+            "url": f"/get_audio_file/{new_record.id}"
         }, status_code=201)
 
     except Exception as e:
         raise HTTPException(500, f"Ошибка загрузки: {str(e)}")
+
+@app.delete("/delete_audio")
+async def delete_audio(
+    audio_id: int,
+    session: Session = Depends(db.get_session)
+):
+
+    query = session.get(MusicMeta, audio_id)
+    if not query:
+        raise HTTPException(status_code=404, detail="Аудиозапись не найдена")
+
+    if query.url:
+        try:
+            minio_manager.delete_file("music", query.url)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Ошибка при удалении файла: {str(e)}")
+
+    session.delete(query)
+    session.commit()
+
+@app.get("/moderation_queue", response_model=List[AudioBaseInfo])
+async def moderation_queue(session: Session = Depends(db.get_session)):
+    queue = session.query(MusicQueue).all()
+    result = []
+    for item in queue:
+        result.append(AudioBaseInfo(
+            id=item.id,
+            name=item.url,
+            author=None,
+            url=f"/get_queue_audio_file/{item.id}"
+        ))
+    return result
+
+@app.get("/get_queue_audio_file/{queue_id}")
+async def get_queue_audio_file(queue_id: int, session: Session = Depends(db.get_session)):
+    record = session.get(MusicQueue, queue_id)
+    if not record or not record.url:
+        raise HTTPException(404, "Файл не найден")
+
+    try:
+        file_data = minio_manager.download_file("audio-bucket", record.url)
+        return StreamingResponse(
+            io.BytesIO(file_data),
+            media_type="audio/mpeg",
+            headers={"Content-Disposition": f'attachment; filename=\"{record.url}\"'}
+        )
+    except Exception as e:
+        raise HTTPException(500, f"Ошибка загрузки: {str(e)}")
+
+@app.delete("/reject_audio/{queue_id}")
+async def reject_audio(queue_id: int, session: Session = Depends(db.get_session)):
+    record = session.get(MusicQueue, queue_id)
+    if not record:
+        raise HTTPException(404, "Файл не найден")
+
+    try:
+        minio_manager.delete_file("audio-bucket", record.url)
+    except Exception as e:
+        raise HTTPException(500, f"Ошибка удаления из MinIO: {str(e)}")
+
+    session.delete(record)
+    session.commit()
+    return {"detail": "Аудиофайл отклонён и удалён"}
+
+
 
 
 if __name__ == "__main__":
