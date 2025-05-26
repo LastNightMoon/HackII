@@ -1,7 +1,6 @@
-from sqlalchemy import Column, Integer, String, Date, ForeignKey, DateTime
-from sqlalchemy.orm import declarative_base, relationship, DeclarativeBase
-from sqlalchemy.dialects.postgresql import JSON, TSVECTOR
-from datetime import datetime
+from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy.dialects.postgresql import TSVECTOR
+from sqlalchemy.orm import relationship, DeclarativeBase
 
 
 class Base(DeclarativeBase):

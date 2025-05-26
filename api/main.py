@@ -5,25 +5,20 @@ from typing import List
 
 import sqlalchemy
 import uvicorn
+from fastapi import Depends
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.responses import StreamingResponse
-from urllib.parse import quote
-
-from DataBaseManager import MusicMeta, Category, MusicQueue
-from DataBaseManager import db
-from DataBaseManager.minio_manager import minio_manager
-from api.models import CategoryFilter, AudioBaseInfo, AudioFullInfo, AudioFilterRequest, AudioFilterRequest, AudioBaseInfo
-
-
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import text
-from fastapi import Depends
-from typing import List
-from api.models import AudioFilterRequest, AudioBaseInfo
+
+from DataBaseManager import Category, MusicQueue
 from DataBaseManager import MusicMeta, db
+from DataBaseManager.minio_manager import minio_manager
+from api.models import AudioFilterRequest, AudioBaseInfo
+from api.models import CategoryFilter, AudioFullInfo
 
 app = FastAPI(title="Голос Победы API", description="API для работы с архивом военных песен")
 
@@ -34,6 +29,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 @app.get("/get_audio_list", response_model=List[AudioBaseInfo])
 async def get_audio_list():
@@ -48,13 +44,14 @@ async def get_audio_list():
     except Exception as e:
         raise HTTPException(500, str(e))
 
+
 @app.get("/get_audio_info/{file_id}", response_model=AudioFullInfo)
 async def get_audio_info(file_id: int):
     query: MusicMeta = db.select_music_by_id(file_id)
     if not query:
         raise HTTPException(404, "Запись не найдена")
 
-    return  {
+    return {
         "id": query.music_id,
         "name": query.name,
         "author": getattr(query, 'Author', ''),
@@ -62,6 +59,7 @@ async def get_audio_info(file_id: int):
         "text": query.text_music,
         "url": f"/get_audio_file/{query.music_id}"
     }
+
 
 @app.get("/get_category_list", response_model=List[CategoryFilter])
 async def get_category_list():
@@ -73,6 +71,7 @@ async def get_category_list():
         } for q in queries]
     except Exception as e:
         raise HTTPException(500, str(e))
+
 
 @app.post("/filter_music_list", response_model=List[AudioBaseInfo])
 async def filter_music_list(filter: AudioFilterRequest, session: Session = Depends(db.get_session)):
@@ -128,6 +127,7 @@ async def filter_music_list(filter: AudioFilterRequest, session: Session = Depen
 
     return []
 
+
 @app.get("/get_audio_file/{file_id}")
 async def get_audio_file(file_id: int):
     query = db.select_music_by_id(file_id)
@@ -145,6 +145,7 @@ async def get_audio_file(file_id: int):
         )
     except Exception as e:
         raise HTTPException(500, f"Ошибка загрузки: {str(e)}")
+
 
 # @app.post("/upload_audio")
 # async def upload_audio(file: UploadFile = File(...)):
@@ -201,12 +202,12 @@ async def upload_audio(file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(500, f"Ошибка загрузки: {str(e)}")
 
+
 @app.delete("/delete_audio")
 async def delete_audio(
-    audio_id: int,
-    session: Session = Depends(db.get_session)
+        audio_id: int,
+        session: Session = Depends(db.get_session)
 ):
-
     query = session.get(MusicMeta, audio_id)
     if not query:
         raise HTTPException(status_code=404, detail="Аудиозапись не найдена")
@@ -220,6 +221,7 @@ async def delete_audio(
     session.delete(query)
     session.commit()
 
+
 @app.get("/moderation_queue", response_model=List[AudioBaseInfo])
 async def moderation_queue(session: Session = Depends(db.get_session)):
     queue = session.query(MusicQueue).all()
@@ -232,6 +234,7 @@ async def moderation_queue(session: Session = Depends(db.get_session)):
             url=f"/get_queue_audio_file/{item.id}"
         ))
     return result
+
 
 @app.get("/get_queue_audio_file/{queue_id}")
 async def get_queue_audio_file(queue_id: int, session: Session = Depends(db.get_session)):
@@ -249,6 +252,7 @@ async def get_queue_audio_file(queue_id: int, session: Session = Depends(db.get_
     except Exception as e:
         raise HTTPException(500, f"Ошибка загрузки: {str(e)}")
 
+
 @app.delete("/reject_audio/{queue_id}")
 async def reject_audio(queue_id: int, session: Session = Depends(db.get_session)):
     record = session.get(MusicQueue, queue_id)
@@ -263,8 +267,6 @@ async def reject_audio(queue_id: int, session: Session = Depends(db.get_session)
     session.delete(record)
     session.commit()
     return {"detail": "Аудиофайл отклонён и удалён"}
-
-
 
 
 if __name__ == "__main__":
