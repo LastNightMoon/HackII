@@ -19,4 +19,4 @@ COPY . .
 
 LABEL authors="LapTop_Bogdan"
 
-CMD ["python", "-m",  "improvement.listener"]
+#CMD ["python", "-m",  "improvement.listener"]

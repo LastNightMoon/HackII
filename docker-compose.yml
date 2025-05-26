@@ -19,3 +19,13 @@ services:
       - "python"
       - "-m"
       - "recognition.listener"
+
+  restapi:
+    build:
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    command:
+      - "python"
+      - "-m"
+      - "api.main"

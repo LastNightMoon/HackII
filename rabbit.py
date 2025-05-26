@@ -22,7 +22,7 @@ try:
         producer = Producer(conn)
         # Publish a persistent message
         producer.publish(
-            body='{"id": 1}',
+            body='{"id": 4}',
             routing_key=queue_name,
             exchange='',  # Default exchange
         )
