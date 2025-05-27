@@ -14,8 +14,11 @@ class ManagerMinio:
         self.client.upload_fileobj(io.BytesIO(data), bucket, path_from)
 
     def download_file(self, bucket: str, path_to: str):
+        return self.stream_file(bucket, path_to).read()
+
+    def stream_file(self, bucket: str, path_to: str):
         obj = self.client.get_object(Bucket=bucket, Key=path_to)
-        return obj["Body"].read()
+        return obj["Body"]
 
     def delete_file(self, bucket: str, path: str):
         self.client.delete_object(Bucket=bucket, Key=path)

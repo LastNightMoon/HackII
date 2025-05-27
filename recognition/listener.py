@@ -12,7 +12,7 @@ from DataBaseManager.minio_manager import minio_manager
 from DataBaseManager.schems import SQLBase
 from recognition.schems import Song
 from recognition.recognition_pipeline import AudioTranscriber
-from utils.generate_sql_stmz import get_text_sql, pipeline_sql
+from utils.generate_sql_stmz import get_text_sql, pipeline_sql, select_music_by_id
 
 
 def process_message(body: str) -> dict:

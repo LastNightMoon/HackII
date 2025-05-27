@@ -18,17 +18,20 @@ async def execute_query(query: SQLBase):
         print(query)
         if model is None:
             return JSONResponse(status_code=400, content={"ok": False, "error": "Unknown model"})
-
-        result = db.get_session().execute(text(query.text))
+        with db.get_session() as session:
+            result = session.execute(text(query.text))
+            session.commit()
         print(result)
-        rows = result.fetchall()
-        print(rows)
+        print(model)
+        if model:
+            rows = result.fetchall()
+            print(rows)
         # Преобразуем SQLAlchemy Row в dict через маппинг
         return {
-            "ok": True,
-            "response": [dict(row._mapping) for row in rows]
+            "ok": True, "response": [dict(row._mapping) for row in rows]
+            if model else None
+
         }
-        return None
 
     except Exception as e:
         print(e)

@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 from improvement.audio_pipeline import process_audio
 from improvement.schems import Song
-from DataBaseManager import db
+from utils.generate_sql_stmz import select_music_by_id
 from DataBaseManager.minio_manager import minio_manager
 
 
@@ -15,7 +15,7 @@ def audio_download(body: dict):
     meta_data = Song.model_validate_json(body)
 
     logger.info(f"Fetching audio metadata for ID: {meta_data.id}")
-    audio_meta = db.select_music_by_id(meta_data.id)
+    audio_meta = select_music_by_id(meta_data.id)
     if not audio_meta:
         logger.info(f'No audio found for ID: {meta_data.id}')
         return

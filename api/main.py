@@ -15,19 +15,11 @@ from sqlalchemy.orm import Session
 from sqlalchemy.sql import text
 
 from DataBaseManager import Category, MusicQueue
-from DataBaseManager import MusicMeta, db
+from DataBaseManager import MusicMeta
 from DataBaseManager.minio_manager import minio_manager
 from api.models import AudioFilterRequest, AudioBaseInfo
 from api.models import CategoryFilter, AudioFullInfo
-from utils.generate_sql_stmz import pipeline_sql
-
-
-def select_music_by_id(id):
-    res = pipeline_sql(sqlalchemy.select(MusicMeta).where(MusicMeta.music_id == id), MusicMeta)
-    if len(res) == 0:
-        return None
-    return res[0]
-
+from utils.generate_sql_stmz import pipeline_sql, select_music_by_id
 
 app = FastAPI(title="Голос Победы API", description="API для работы с архивом военных песен")
 
@@ -66,7 +58,8 @@ async def get_audio_info(file_id: int):
         "id": query.music_id,
         "name": query.name,
         "author": getattr(query, 'Author', ''),
-        "music_category": pipeline_sql(sqlalchemy.select(Category).filter_by(category_id=query.music_category), Category)[0].label,
+        "music_category":
+            pipeline_sql(sqlalchemy.select(Category).filter_by(category_id=query.music_category), Category)[0].label,
         "text": query.text_music,
         "url": f"/get_audio_file/{query.music_id}"
     }
@@ -85,7 +78,7 @@ async def get_category_list():
 
 
 @app.post("/filter_music_list", response_model=List[AudioBaseInfo])
-async def filter_music_list(filter: AudioFilterRequest, session: Session = Depends(db.get_session)):
+async def filter_music_list(filter: AudioFilterRequest):
     filters = []
     if filter.music_category:
         filters.append(MusicMeta.music_category.in_(filter.music_category))
@@ -131,7 +124,7 @@ async def filter_music_list(filter: AudioFilterRequest, session: Session = Depen
                     """
 
         # Pass only the query to pipeline_sql
-        results = pipeline_sql({"text": sql}, table=MusicMeta)
+        results = pipeline_sql(sql, table=MusicMeta)
         return [
             AudioBaseInfo(
                 id=r.music_id,
@@ -156,8 +149,8 @@ async def get_audio_file(file_id: int):
             raise HTTPException(500, "Файл не найден или пустой")
         return StreamingResponse(
             io.BytesIO(file_data),
-            media_type="audio/wav",
-            headers={"Content-Disposition": f'inline; filename="{query.url}"'}
+            media_type="audio/mpeg",
+            headers={"Content-Disposition": f'attachment; filename=\"{query.url}\"'}
         )
     except Exception as e:
         raise HTTPException(500, f"Ошибка загрузки: {str(e)}")
@@ -203,9 +196,8 @@ async def upload_audio(file: UploadFile = File(...)):
 
         file_content = await file.read()
         minio_manager.upload_file("music", file_content, file_name)
-        pipeline_sql(sqlalchemy.insert(MusicQueue).values(url=file_name), MusicQueue)
-
-        new_record = pipeline_sql(sqlalchemy.select(MusicQueue).filter_by(url=file_name), MusicQueue)[0]
+        new_record = \
+            pipeline_sql(sqlalchemy.insert(MusicQueue).values(url=file_name).returning(MusicQueue), MusicQueue)[0]
 
         return JSONResponse({
             "status": "success",
@@ -254,14 +246,15 @@ async def get_queue_audio_file(queue_id: int):
     try:
 
         pipeline_sql(sqlalchemy.insert(MusicMeta).
-                            values(name=record.url,
-                                   url=record.url, music_category=1), MusicMeta)
-
-        file_data = minio_manager.download_file("music", record.url)
+                     values(name=record.url,
+                            url=record.url, music_category=1), MusicMeta)
+        print(record.url)
+        pipeline_sql(sqlalchemy.delete(MusicQueue).where(MusicQueue.id == queue_id))
+        stream = minio_manager.stream_file("music", record.url)
         return StreamingResponse(
-            io.BytesIO(file_data),
+            stream,
             media_type="audio/mpeg",
-            headers={"Content-Disposition": f'attachment; filename=\"{record.url}\"'}
+            headers={"Content-Disposition": f'attachment; filename="{record.name}"'}
         )
     except Exception as e:
         raise HTTPException(500, f"Ошибка загрузки: {str(e)}")
@@ -269,16 +262,17 @@ async def get_queue_audio_file(queue_id: int):
 
 @app.delete("/reject_audio/{queue_id}")
 async def reject_audio(queue_id: int):
-    record = pipeline_sql(sqlalchemy.select(MusicQueue).filter_by(id=queue_id), MusicQueue)[0]
+    record = pipeline_sql(sqlalchemy.select(MusicQueue).where(MusicQueue.id == queue_id), MusicQueue)[0]
     if not record:
         raise HTTPException(404, "Файл не найден")
 
     try:
+        print(record)
         minio_manager.delete_file("music", record.url)
     except Exception as e:
         raise HTTPException(500, f"Ошибка удаления из MinIO: {str(e)}")
 
-    pipeline_sql(sqlalchemy.delete(MusicQueue).filter_by(id=queue_id), MusicQueue)
+    pipeline_sql(sqlalchemy.delete(MusicQueue).where(MusicQueue.id == queue_id))
 
     return {"detail": "Аудиофайл отклонён и удалён"}
 

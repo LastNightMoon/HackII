@@ -30,13 +30,16 @@ class MusicMeta(Base):
 
     owner_category = relationship("Category", back_populates="owner_music_meta")
 
+
 class MusicQueue(Base):
     __tablename__ = 'music_queue'
     id: int = Column(Integer, primary_key=True, autoincrement=True)
     url: str = Column(String)
 
+
 model_map = {
     "MusicMeta": MusicMeta,
     "MusicQueue": MusicQueue,
     "Category": Category,
+    "none": False
 }
